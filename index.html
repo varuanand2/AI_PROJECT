@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Stock Predictor Pro - Advanced Market Analysis</title>
+    <style>
+        :root {
+            --bg-dark: #0d0f28;
+            --surface-dark: #12143b;
+            --surface-light: #1a1e4c;
+            --primary-accent: #6a82fb;
+            --primary-accent-dark: #2e3465;
+            --text-primary: #d1d4e1;
+            --text-secondary: #9ba1b4;
+            --color-up: #4CAF50;
+            --color-down: #F44336;
+            --color-hold: #ff9800;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 95%;
+            max-width: 1400px;
+            background-color: var(--surface-dark);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+        }
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--primary-accent-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            color: var(--primary-accent);
+            margin: 0;
+            font-weight: 700;
+        }
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background-color: var(--surface-light);
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        #stockSelect {
+            width: 300px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: none;
+            background-color: var(--primary-accent-dark);
+            color: var(--text-primary);
+            font-size: 1em;
+            cursor: pointer;
+        }
+        #analyzeBtn {
+            padding: 12px 30px;
+            background-image: linear-gradient(45deg, var(--primary-accent), #a86afb);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        #analyzeBtn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(106, 130, 251, 0.4);
+        }
+        #analyzeBtn:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--primary-accent-dark);
+            padding-bottom: 15px;
+            margin: 20px 0;
+        }
+        .nav-tabs button {
+            padding: 10px 20px;
+            border: 1px solid var(--primary-accent-dark);
+            border-radius: 20px;
+            background-color: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .nav-tabs button.active {
+            background-color: var(--primary-accent);
+            color: white;
+            border-color: var(--primary-accent);
+        }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        .chart-container {
+            background-color: var(--surface-light);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        #chartCanvas, #tv_chart {
+            width: 100%;
+            height: 600px;
+            background-color: var(--surface-dark);
+            border-radius: 8px;
+            display: block;
+        }
+        #tv_chart {
+            border: 1px solid #2e3465;
+            overflow: hidden;
+        }
+        .chart-toggle {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .chart-toggle button {
+            padding: 8px 16px;
+            margin: 0 5px;
+            border: 1px solid var(--primary-accent);
+            background: transparent;
+            color: var(--text-primary);
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .chart-toggle button.active {
+            background: var(--primary-accent);
+            color: white;
+        }
+        .chart-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+            padding: 15px;
+            background-color: var(--surface-dark);
+            border-radius: 8px;
+        }
+        .chart-info-item h4 {
+            margin: 0 0 5px;
+            font-size: 0.85em;
+            color: var(--text-secondary);
+        }
+        .chart-info-item .value {
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+            padding: 15px;
+            background-color: var(--surface-dark);
+            border-radius: 8px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-color {
+            width: 30px;
+            height: 3px;
+            border-radius: 2px;
+        }
+        .legend-color.support { background-color: #4CAF50; }
+        .legend-color.resistance { background-color: #F44336; }
+        .legend-color.fib { background-color: #ff9800; }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .card {
+            background-color: var(--surface-light);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        .card h3 {
+            margin: 0 0 8px;
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+        .card .value {
+            font-size: 1.8em;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .up { color: var(--color-up); }
+        .down { color: var(--color-down); }
+        .ai-recommendation { text-align: center; padding: 30px 0; }
+        .ai-recommendation h2 { font-size: 3.5em; margin: 0 0 10px; font-weight: 700; }
+        .ai-recommendation .strong.buy { color: var(--color-up); }
+        .ai-recommendation .strong.sell { color: var(--color-down); }
+        .ai-recommendation .buy { color: var(--color-up); }
+        .ai-recommendation .sell { color: var(--color-down); }
+        .ai-recommendation .hold { color: var(--color-hold); }
+        .signal-list { padding: 0; margin: 20px 0; }
+        .signal-list li {
+            background-color: var(--surface-light);
+            padding: 12px;
+            border-radius: 8px;
+            list-style: none;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+        .pattern-section {
+            background-color: var(--surface-light);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .pattern-section h3 {
+            margin: 0 0 15px;
+            color: var(--primary-accent);
+        }
+        .pattern-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .pattern-item {
+            background-color: var(--surface-dark);
+            padding: 10px 15px;
+            border-radius: 6px;
+            border-left: 3px solid var(--primary-accent);
+        }
+        .level-item {
+            background-color: var(--surface-dark);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--primary-accent);
+        }
+        .level-item h4 {
+            margin: 0 0 8px;
+            color: var(--primary-accent);
+            font-size: 1.1em;
+        }
+        .level-detail {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
+        .level-detail span:first-child {
+            color: var(--text-secondary);
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        .badge.strong, .badge.very-strong { background-color: var(--color-up); color: white; }
+        .badge.moderate { background-color: var(--color-hold); color: white; }
+        .badge.weak { background-color: var(--text-secondary); color: white; }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(13, 15, 40, 0.9);
+            backdrop-filter: blur(5px);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .loading-overlay.visible { display: flex; }
+        .spinner {
+            border: 6px solid var(--primary-accent-dark);
+            border-top: 6px solid var(--primary-accent);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error-message {
+            color: var(--color-down);
+            text-align: center;
+            padding: 20px;
+            font-weight: bold;
+        }
+        .price-val { font-size: 1.8em; font-weight: bold; }
+        .diff-pts {
+            display: block;
+            font-size: 0.7em;
+            margin-top: 5px;
+            color: #9ba1b4;
+        }
+        @media (max-width: 768px) {
+            .card-grid { grid-template-columns: repeat(2, 1fr); }
+            #chartCanvas, #tv_chart { height: 400px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 AI Stock Predictor Pro - Advanced Analysis</h1>
+            <p style="color: var(--text-secondary); margin: 0; font-size: 1em;">
+                Live Chart | VWAP | Supertrend | Fibonacci (1H) | Support/Resistance (1D)
+            </p>
+        </div>
+        <div class="input-section">
+            <select id="stockSelect">
+                <option value="">Select Stock/Index</option>
+                <option value="NIFTY">NIFTY 50</option>
+                <option value="BANKNIFTY">BANK NIFTY</option>
+                <option value="RELIANCE">RELIANCE</option>
+                <option value="HDFCBANK.NS">HDFC BANK</option>
+                <option value="SBIN.NS">SBI</option>
+            </select>
+            <button id="analyzeBtn">ANALYZE</button>
+        </div>
+        <div id="resultSection" style="display: none;">
+            <div class="nav-tabs">
+                <button class="tab-button active" onclick="showTab('summary')">Summary</button>
+                <button class="tab-button" onclick="showTab('chart')">📈 Live Chart</button>
+                <button class="tab-button" onclick="showTab('indicators')">Indicators</button>
+                <button class="tab-button" onclick="showTab('fibonacci')">Fibonacci 1H</button>
+                <button class="tab-button" onclick="showTab('support')">S/R 1D</button>
+                <button class="tab-button" onclick="showTab('patterns')">Patterns</button>
+                <button class="tab-button" onclick="showTab('news')">News</button>
+            </div>
+            <!-- Summary Tab -->
+            <div id="summaryTab" class="content-section active">
+                <div class="ai-recommendation">
+                    <h2 id="aiRecommendation">HOLD</h2>
+                    <p style="font-size: 1.1em; color: var(--text-secondary);" id="aiConfidence">Confidence: 0%</p>
+                </div>
+                <div class="card-grid">
+                    <div class="card">
+                        <h3>Current Price (LTP)</h3>
+                        <div id="currentPrice" class="price-val">₹0.00</div>
+                        <div id="priceChange" style="font-size: 0.9em;"></div>
+                    </div>
+                    <div class="card">
+                        <h3>Target 1</h3>
+                        <div id="target1" class="price-val up">₹0.00</div>
+                        <span id="tg1_pts" class="diff-pts">Target Gap: +0.00 pts</span>
+                    </div>
+                    <div class="card">
+                        <h3>Target 2</h3>
+                        <div id="target2" class="price-val up">₹0.00</div>
+                        <span id="tg2_pts" class="diff-pts">Target Gap: +0.00 pts</span>
+                    </div>
+                    <div class="card">
+                        <h3>Stop Loss</h3>
+                        <div id="stopLoss" class="price-val down">₹0.00</div>
+                        <span id="sl_pts" class="diff-pts">Risk Gap: 0.00 pts</span>
+                    </div>
+                    <div class="card">
+                        <h3>Market Cap</h3>
+                        <div class="value" style="font-size: 1.2em;" id="marketCap">N/A</div>
+                    </div>
+                    <div class="card">
+                        <h3>Volume</h3>
+                        <div class="value" style="font-size: 1.2em;" id="volume">N/A</div>
+                    </div>
+                    <div class="card">
+                        <h3>P/E Ratio</h3>
+                        <div class="value" style="font-size: 1.2em;" id="peRatio">N/A</div>
+                    </div>
+                </div>
+                <div style="background-color: var(--surface-light); padding: 20px; border-radius: 10px; margin-top: 20px;">
+                    <h3 style="margin: 0 0 15px; color: var(--primary-accent);">AI Signals</h3>
+                    <ul class="signal-list" id="signalList"></ul>
+                </div>
+            </div>
+            <!-- Chart Tab -->
+            <div id="chartTab" class="content-section">
+                <div class="chart-container">
+                    <h3 style="margin: 0 0 15px; color: var(--primary-accent);">📈 Live Price Chart with S/R & Fibonacci Levels</h3>
+                    <div class="chart-toggle">
+                        <button class="active" onclick="toggleChart('canvas')">Custom Canvas</button>
+                        <button onclick="toggleChart('tradingview')">TradingView</button>
+                    </div>
+                    <canvas id="chartCanvas" style="display: block;"></canvas>
+                    <div id="tv_chart" style="display: none;"></div>
+                    <div class="chart-info">
+                        <div class="chart-info-item">
+                            <h4>Chart Status</h4>
+                            <div class="value up" id="chartStatus">Ready</div>
+                        </div>
+                        <div class="chart-info-item">
+                            <h4>Timeframe</h4>
+                            <div class="value">Daily (1D)</div>
+                        </div>
+                        <div class="chart-info-item">
+                            <h4>Data Points</h4>
+                            <div class="value" id="dataPoints">0</div>
+                        </div>
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color support"></div>
+                            <span>Support Levels (Green)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color resistance"></div>
+                            <span>Resistance Levels (Red)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color fib"></div>
+                            <span>Fibonacci Levels (Orange)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Indicators Tab -->
+            <div id="indicatorsTab" class="content-section">
+                <div class="card-grid">
+                    <div class="card"><h3>RSI</h3><div class="value" id="rsi">N/A</div></div>
+                    <div class="card"><h3>MACD</h3><div class="value" id="macd">N/A</div></div>
+                    <div class="card"><h3>MACD Signal</h3><div class="value" id="macdSignal">N/A</div></div>
+                    <div class="card"><h3>SMA 20</h3><div class="value" id="sma20">N/A</div></div>
+                    <div class="card"><h3>EMA 20</h3><div class="value" id="ema20">N/A</div></div>
+                    <div class="card"><h3>ATR</h3><div class="value" id="atr">N/A</div></div>
+                </div>
+                <div class="pattern-section">
+                    <h3>VWAP Analysis</h3>
+                    <div class="card-grid">
+                        <div class="card"><h3>VWAP</h3><div class="value" id="vwap">N/A</div></div>
+                        <div class="card"><h3>Position</h3><div class="value" id="vwapPosition">N/A</div></div>
+                    </div>
+                </div>
+                <div class="pattern-section">
+                    <h3>Supertrend Indicator</h3>
+                    <div class="card-grid">
+                        <div class="card"><h3>Supertrend</h3><div class="value" id="supertrend">N/A</div></div>
+                        <div class="card"><h3>Signal</h3><div class="value" id="supertrendSignal">N/A</div></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Fibonacci Tab -->
+            <div id="fibonacciTab" class="content-section">
+                <div class="pattern-section">
+                    <h3>Fibonacci Analysis (1H Timeframe)</h3>
+                    <div class="card-grid">
+                        <div class="card"><h3>Swing High</h3><div class="value up" id="fib1hHigh">N/A</div></div>
+                        <div class="card"><h3>Swing Low</h3><div class="value down" id="fib1hLow">N/A</div></div>
+                        <div class="card"><h3>Difference</h3><div class="value" id="fib1hDiff">N/A</div></div>
+                    </div>
+                </div>
+                <div class="pattern-section">
+                    <h3>Fibonacci Levels</h3>
+                    <div class="card-grid">
+                        <div class="card"><h3>0.0%</h3><div class="value" id="fib1h_0">N/A</div></div>
+                        <div class="card"><h3>23.6%</h3><div class="value" id="fib1h_236">N/A</div></div>
+                        <div class="card"><h3>38.2%</h3><div class="value" id="fib1h_382">N/A</div></div>
+                        <div class="card"><h3>50.0%</h3><div class="value" id="fib1h_500">N/A</div></div>
+                        <div class="card"><h3>61.8%</h3><div class="value" id="fib1h_618">N/A</div></div>
+                        <div class="card"><h3>78.6%</h3><div class="value" id="fib1h_786">N/A</div></div>
+                        <div class="card"><h3>100%</h3><div class="value" id="fib1h_100">N/A</div></div>
+                    </div>
+                </div>
+                <div class="pattern-section">
+                    <h3>Most Important Fibonacci Levels</h3>
+                    <div id="fibImportantLevels"></div>
+                </div>
+            </div>
+            <!-- Support/Resistance Tab -->
+            <div id="supportTab" class="content-section">
+                <div class="pattern-section">
+                    <h3>Support Levels (1D)</h3>
+                    <div id="supportLevelsList"></div>
+                </div>
+                <div class="pattern-section">
+                    <h3>Resistance Levels (1D)</h3>
+                    <div id="resistanceLevelsList"></div>
+                </div>
+                <div class="pattern-section" id="mostActiveLevelSection" style="display: none;">
+                    <h3>🔥 Most Active Level</h3>
+                    <div id="mostActiveLevel"></div>
+                </div>
+                <div class="pattern-section">
+                    <h3>Summary</h3>
+                    <div class="card-grid">
+                        <div class="card"><h3>Total Supports</h3><div class="value" id="totalSupports">0</div></div>
+                        <div class="card"><h3>Total Resistances</h3><div class="value" id="totalResistances">0</div></div>
+                        <div class="card"><h3>Strongest Support</h3><div class="value down" id="strongestSupport">N/A</div></div>
+                        <div class="card"><h3>Strongest Resistance</h3><div class="value up" id="strongestResistance">N/A</div></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Patterns Tab -->
+            <div id="patternsTab" class="content-section">
+                <div class="pattern-section">
+                    <h3>Candlestick Patterns</h3>
+                    <div class="pattern-list" id="candlestickPatterns"></div>
+                </div>
+            </div>
+            <!-- News Tab -->
+            <div id="newsTab" class="content-section">
+                <ul id="newsList" style="padding: 0; list-style: none;"></ul>
+            </div>
+        </div>
+        <div id="loadingOverlay" class="loading-overlay">
+            <div class="spinner"></div>
+            <p style="margin-top: 20px; font-size: 1.1em;">Analyzing market data...</p>
+        </div>
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+    </div>
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:8000';
+        let currentAnalysisData = null;
+        let chartCanvas = null;
+        let chartCtx = null;
+        let currentChartType = 'canvas'; // 'canvas' or 'tradingview'
+        let tvWidget = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            populateDefaultStocks();
+            chartCanvas = document.getElementById('chartCanvas');
+            chartCtx = chartCanvas.getContext('2d');
+            document.getElementById('stockSelect').addEventListener('change', () => {
+                document.getElementById('analyzeBtn').disabled = !document.getElementById('stockSelect').value;
+            });
+            document.getElementById('analyzeBtn').addEventListener('click', analyzeStock);
+        });
+
+        function populateDefaultStocks() {
+            // Add default options from first HTML
+            const defaults = [
+                { value: 'NIFTY', text: 'NIFTY 50' },
+                { value: 'BANKNIFTY', text: 'BANK NIFTY' },
+                { value: 'RELIANCE', text: 'RELIANCE' },
+                { value: 'HDFCBANK.NS', text: 'HDFC BANK' },
+                { value: 'SBIN.NS', text: 'SBI' }
+            ];
+            const select = document.getElementById('stockSelect');
+            defaults.forEach(stock => {
+                const option = document.createElement('option');
+                option.value = stock.value;
+                option.textContent = stock.text;
+                select.appendChild(option);
+            });
+            // Optionally fetch more from API
+            fetchStocks();
+        }
+
+        async function fetchStocks() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/stocks`);
+                const data = await response.json();
+                if (data.success && data.stocks) {
+                    const select = document.getElementById('stockSelect');
+                    data.stocks.forEach(stock => {
+                        if (!Array.from(select.options).some(opt => opt.value === stock)) {
+                            const option = document.createElement('option');
+                            option.value = stock;
+                            option.textContent = stock;
+                            select.appendChild(option);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.warn('Failed to load additional stocks:', error);
+            }
+        }
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+            const targetBtn = Array.from(document.querySelectorAll('.tab-button')).find(btn =>
+                btn.onclick && btn.onclick.toString().includes(tabName));
+            if (targetBtn) targetBtn.classList.add('active');
+            document.getElementById(`${tabName}Tab`).classList.add('active');
+            if (tabName === 'chart' && currentAnalysisData) {
+                setTimeout(() => {
+                    if (currentChartType === 'canvas') {
+                        drawChart(currentAnalysisData);
+                    } else {
+                        loadTradingViewChart();
+                    }
+                }, 100);
+            }
+        }
+
+        function toggleChart(type) {
+            currentChartType = type;
+            document.querySelectorAll('.chart-toggle button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('chartCanvas').style.display = type === 'canvas' ? 'block' : 'none';
+            document.getElementById('tv_chart').style.display = type === 'tradingview' ? 'block' : 'none';
+            if (type === 'canvas' && currentAnalysisData) {
+                drawChart(currentAnalysisData);
+            } else if (type === 'tradingview' && currentAnalysisData) {
+                loadTradingViewChart();
+            }
+        }
+
+        function loadTradingViewChart() {
+            const stock = document.getElementById('stockSelect').value;
+            let tvSymbol = "";
+            if (stock.toUpperCase() === 'NIFTY') {
+                tvSymbol = "NSE:NIFTY";
+            } else if (stock.toUpperCase() === 'BANKNIFTY') {
+                tvSymbol = "NSE:BANKNIFTY";
+            } else {
+                tvSymbol = `NSE:${stock.replace('.NS', '').toUpperCase()}`;
+            }
+            document.getElementById('tv_chart').innerHTML = "";
+            tvWidget = new TradingView.widget({
+                "width": "100%",
+                "height": 600,
+                "symbol": tvSymbol,
+                "interval": "15",
+                "timezone": "Asia/Kolkata",
+                "theme": "dark",
+                "style": "1",
+                "locale": "en",
+                "toolbar_bg": "#f1f3f6",
+                "enable_publishing": false,
+                "allow_symbol_change": true,
+                "container_id": "tv_chart"
+            });
+        }
+
+        async function drawChart(data) {
+            try {
+                console.log('Drawing chart...');
+                document.getElementById('chartStatus').textContent = 'Loading...';
+                const stockName = document.getElementById('stockSelect').value;
+                const response = await fetch(`${API_BASE_URL}/chart_data/${stockName}`);
+                const chartData = await response.json();
+                if (!chartData.success || !chartData.candles || chartData.candles.length === 0) {
+                    document.getElementById('chartStatus').textContent = 'No Data';
+                    document.getElementById('chartStatus').className = 'value down';
+                    return;
+                }
+                const candles = chartData.candles;
+                document.getElementById('dataPoints').textContent = candles.length;
+                // Setup canvas
+                const dpr = window.devicePixelRatio || 1;
+                const rect = chartCanvas.getBoundingClientRect();
+                chartCanvas.width = rect.width * dpr;
+                chartCanvas.height = rect.height * dpr;
+                chartCtx.scale(dpr, dpr);
+                const width = rect.width;
+                const height = rect.height;
+                // Clear canvas
+                chartCtx.fillStyle = '#12143b';
+                chartCtx.fillRect(0, 0, width, height);
+                // Get price range
+                const prices = candles.map(c => [c.high, c.low]).flat();
+                const maxPrice = Math.max(...prices);
+                const minPrice = Math.min(...prices);
+                const priceRange = maxPrice - minPrice;
+                const padding = 50;
+                const chartHeight = height - padding * 2;
+                const chartWidth = width - padding * 2;
+                const candleWidth = Math.max(2, chartWidth / candles.length - 2);
+                // Draw grid
+                chartCtx.strokeStyle = '#1a1e4c';
+                chartCtx.lineWidth = 1;
+                for (let i = 0; i < 5; i++) {
+                    const y = padding + (chartHeight / 4) * i;
+                    chartCtx.beginPath();
+                    chartCtx.moveTo(padding, y);
+                    chartCtx.lineTo(width - padding, y);
+                    chartCtx.stroke();
+                    // Price labels
+                    const price = maxPrice - (priceRange / 4) * i;
+                    chartCtx.fillStyle = '#9ba1b4';
+                    chartCtx.font = '12px Arial';
+                    chartCtx.textAlign = 'right';
+                    chartCtx.fillText(`₹${price.toFixed(2)}`, padding - 10, y + 4);
+                }
+                // Draw candlesticks
+                candles.forEach((candle, idx) => {
+                    const x = padding + (idx * (candleWidth + 2)) + candleWidth / 2;
+                    const openY = padding + ((maxPrice - candle.open) / priceRange) * chartHeight;
+                    const closeY = padding + ((maxPrice - candle.close) / priceRange) * chartHeight;
+                    const highY = padding + ((maxPrice - candle.high) / priceRange) * chartHeight;
+                    const lowY = padding + ((maxPrice - candle.low) / priceRange) * chartHeight;
+                    const isGreen = candle.close >= candle.open;
+                    chartCtx.strokeStyle = isGreen ? '#4CAF50' : '#F44336';
+                    chartCtx.fillStyle = isGreen ? '#4CAF50' : '#F44336';
+                    // Wick
+                    chartCtx.beginPath();
+                    chartCtx.moveTo(x, highY);
+                    chartCtx.lineTo(x, lowY);
+                    chartCtx.lineWidth = 1;
+                    chartCtx.stroke();
+                    // Body
+                    const bodyTop = Math.min(openY, closeY);
+                    const bodyHeight = Math.abs(closeY - openY) || 1;
+                    chartCtx.fillRect(x - candleWidth / 2, bodyTop, candleWidth, bodyHeight);
+                });
+                // Draw Support/Resistance levels
+                if (data.support_resistance_analysis_1d) {
+                    const sr = data.support_resistance_analysis_1d;
+                    // Support levels
+                    if (sr.support_levels) {
+                        sr.support_levels.forEach((level, idx) => {
+                            const y = padding + ((maxPrice - level.price) / priceRange) * chartHeight;
+                            chartCtx.strokeStyle = '#4CAF50';
+                            chartCtx.setLineDash([5, 5]);
+                            chartCtx.lineWidth = 2;
+                            chartCtx.beginPath();
+                            chartCtx.moveTo(padding, y);
+                            chartCtx.lineTo(width - padding, y);
+                            chartCtx.stroke();
+                            chartCtx.fillStyle = '#4CAF50';
+                            chartCtx.font = 'bold 12px Arial';
+                            chartCtx.textAlign = 'left';
+                            chartCtx.fillText(`S${idx + 1}: ₹${level.price}`, padding + 5, y - 5);
+                        });
+                    }
+                    // Resistance levels
+                    if (sr.resistance_levels) {
+                        sr.resistance_levels.forEach((level, idx) => {
+                            const y = padding + ((maxPrice - level.price) / priceRange) * chartHeight;
+                            chartCtx.strokeStyle = '#F44336';
+                            chartCtx.setLineDash([5, 5]);
+                            chartCtx.lineWidth = 2;
+                            chartCtx.beginPath();
+                            chartCtx.moveTo(padding, y);
+                            chartCtx.lineTo(width - padding, y);
+                            chartCtx.stroke();
+                            chartCtx.fillStyle = '#F44336';
+                            chartCtx.font = 'bold 12px Arial';
+                            chartCtx.textAlign = 'left';
+                            chartCtx.fillText(`R${idx + 1}: ₹${level.price}`, padding + 5, y + 15);
+                        });
+                    }
+                }
+                // Draw Fibonacci levels
+                if (data.fibonacci_analysis_1h && data.fibonacci_analysis_1h.levels) {
+                    const fibLevels = data.fibonacci_analysis_1h.levels;
+                    Object.entries(fibLevels).forEach(([level, price]) => {
+                        const y = padding + ((maxPrice - price) / priceRange) * chartHeight;
+                        chartCtx.strokeStyle = '#ff9800';
+                        chartCtx.setLineDash([2, 3]);
+                        chartCtx.lineWidth = 1;
+                        chartCtx.beginPath();
+                        chartCtx.moveTo(padding, y);
+                        chartCtx.lineTo(width - padding, y);
+                        chartCtx.stroke();
+                        chartCtx.fillStyle = '#ff9800';
+                        chartCtx.font = '10px Arial';
+                        chartCtx.textAlign = 'right';
+                        chartCtx.fillText(`Fib ${level}%`, width - padding - 5, y - 2);
+                    });
+                }
+                chartCtx.setLineDash([]);
+                document.getElementById('chartStatus').textContent = `${stockName} ✓`;
+                document.getElementById('chartStatus').className = 'value up';
+                console.log('Chart drawn successfully!');
+            } catch (error) {
+                console.error('Chart error:', error);
+                document.getElementById('chartStatus').textContent = 'Error';
+                document.getElementById('chartStatus').className = 'value down';
+                alert('Chart Error: ' + error.message + '\n\nMake sure backend is running!');
+            }
+        }
+
+        async function analyzeStock() {
+            const stockName = document.getElementById('stockSelect').value;
+            if (!stockName) return;
+            document.getElementById('resultSection').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('loadingOverlay').classList.add('visible');
+            try {
+                const response = await fetch(`${API_BASE_URL}/analyze/${stockName}`);
+                const data = await response.json();
+                if (response.ok) {
+                    currentAnalysisData = data;
+                    updateUI(data);
+                    document.getElementById('resultSection').style.display = 'block';
+                    showTab('summary');
+                } else {
+                    displayError(data.detail || 'Analysis failed');
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                displayError(`Backend not responding! Check if your python server is running on port 8000.`);
+            } finally {
+                document.getElementById('loadingOverlay').classList.remove('visible');
+            }
+        }
+
+        function updateUI(data) {
+            const rec = data.ai_recommendation.action;
+            document.getElementById('aiRecommendation').textContent = rec;
+            document.getElementById('aiRecommendation').className = rec.toLowerCase().replace(' ', '.');
+            document.getElementById('aiConfidence').textContent = `Confidence: ${data.ai_recommendation.confidence.toFixed(1)}%`;
+            const rd = data.realtime_data;
+            const ltp = rd.current_price;
+            document.getElementById('currentPrice').textContent = `₹${ltp}`;
+            const changeEl = document.getElementById('priceChange');
+            changeEl.textContent = `${rd.change >= 0 ? '+' : ''}${rd.change.toFixed(2)} (${rd.change_percent.toFixed(2)}%)`;
+            changeEl.className = rd.change >= 0 ? 'up' : 'down';
+            document.getElementById('marketCap').textContent = rd.market_cap;
+            document.getElementById('volume').textContent = rd.volume.toLocaleString();
+            document.getElementById('peRatio').textContent = rd.pe_ratio;
+            document.getElementById('signalList').innerHTML = data.ai_recommendation.signals.map(s => `<li>${s}</li>`).join('');
+            const ts = data.targets_stoploss;
+            document.getElementById('target1').textContent = `₹${ts.target1}`;
+            document.getElementById('target2').textContent = `₹${ts.target2}`;
+            document.getElementById('stopLoss').textContent = `₹${ts.stop_loss}`;
+            // Calculate and Show Distance Points from LTP
+            document.getElementById('tg1_pts').innerText = `Target Gap: +${(ts.target1 - ltp).toFixed(2)} pts`;
+            document.getElementById('tg2_pts').innerText = `Target Gap: +${(ts.target2 - ltp).toFixed(2)} pts`;
+            document.getElementById('sl_pts').innerText = `Risk Gap: ${(ts.stop_loss - ltp).toFixed(2)} pts`;
+            const ti = data.technical_indicators;
+            document.getElementById('rsi').textContent = ti.rsi.toFixed(2);
+            document.getElementById('macd').textContent = ti.macd.toFixed(2);
+            document.getElementById('macdSignal').textContent = ti.macd_signal.toFixed(2);
+            document.getElementById('sma20').textContent = `₹${ti.sma_20.toFixed(2)}`;
+            document.getElementById('ema20').textContent = `₹${ti.ema_20.toFixed(2)}`;
+            document.getElementById('atr').textContent = ti.atr.toFixed(2);
+            if (data.vwap && data.vwap.current_vwap) {
+                document.getElementById('vwap').textContent = `₹${data.vwap.current_vwap}`;
+                const vwapPos = rd.current_price > data.vwap.current_vwap ? 'Above (Bullish)' : 'Below (Bearish)';
+                document.getElementById('vwapPosition').textContent = vwapPos;
+                document.getElementById('vwapPosition').className = rd.current_price > data.vwap.current_vwap ? 'value up' : 'value down';
+            }
+            if (data.supertrend) {
+                document.getElementById('supertrend').textContent = `₹${data.supertrend.supertrend_value}`;
+                document.getElementById('supertrendSignal').textContent = data.supertrend.signal;
+                document.getElementById('supertrendSignal').className = data.supertrend.signal === 'BUY' ? 'value up' : 'value down';
+            }
+            updateFibonacci1H(data);
+            updateSupportResistance1D(data);
+            if (data.candlestick_patterns) {
+                document.getElementById('candlestickPatterns').innerHTML = data.candlestick_patterns
+                    .map(p => `<div class="pattern-item">${p}</div>`).join('');
+            }
+            updateNews(data);
+        }
+
+        function updateFibonacci1H(data) {
+            const fib1h = data.fibonacci_analysis_1h;
+            if (!fib1h) return;
+            document.getElementById('fib1hHigh').textContent = `₹${fib1h.swing_high || 'N/A'}`;
+            document.getElementById('fib1hLow').textContent = `₹${fib1h.swing_low || 'N/A'}`;
+            document.getElementById('fib1hDiff').textContent = `₹${fib1h.difference || 'N/A'}`;
+            const levels = fib1h.levels || {};
+            document.getElementById('fib1h_0').textContent = `₹${levels['0.0'] || 'N/A'}`;
+            document.getElementById('fib1h_236').textContent = `₹${levels['23.6'] || 'N/A'}`;
+            document.getElementById('fib1h_382').textContent = `₹${levels['38.2'] || 'N/A'}`;
+            document.getElementById('fib1h_500').textContent = `₹${levels['50.0'] || 'N/A'}`;
+            document.getElementById('fib1h_618').textContent = `₹${levels['61.8'] || 'N/A'}`;
+            document.getElementById('fib1h_786').textContent = `₹${levels['78.6'] || 'N/A'}`;
+            document.getElementById('fib1h_100').textContent = `₹${levels['100.0'] || 'N/A'}`;
+            const importantLevels = fib1h.most_important_levels || [];
+            const fibImportantEl = document.getElementById('fibImportantLevels');
+            if (importantLevels.length > 0) {
+                fibImportantEl.innerHTML = importantLevels.map(level => `
+                    <div class="level-item">
+                        <h4>Fib ${level.level} - ₹${level.price}</h4>
+                        <div class="level-detail">
+                            <span>Type:</span>
+                            <span><strong>${level.type}</strong></span>
+                        </div>
+                        <div class="level-detail">
+                            <span>Touches:</span>
+                            <span><strong>${level.touches}</strong></span>
+                        </div>
+                        <div class="level-detail">
+                            <span>Importance:</span>
+                            <span class="badge ${level.importance.toLowerCase().replace(' ', '-')}">${level.importance}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                fibImportantEl.innerHTML = '<p style="color: var(--text-secondary);">No important levels detected</p>';
+            }
+        }
+
+        function updateSupportResistance1D(data) {
+            const sr1d = data.support_resistance_analysis_1d;
+            if (!sr1d) return;
+            const supportLevels = sr1d.support_levels || [];
+            const supportListEl = document.getElementById('supportLevelsList');
+            if (supportLevels.length > 0) {
+                supportListEl.innerHTML = supportLevels.map((level, idx) => `
+                    <div class="level-item">
+                        <h4>Support ${idx + 1} - ₹${level.price}</h4>
+                        <div class="level-detail">
+                            <span>Strength:</span>
+                            <span class="badge ${level.strength.toLowerCase().replace(' ', '-')}">${level.strength}</span>
+                        </div>
+                        <div class="level-detail">
+                            <span>Touches:</span>
+                            <span><strong>${level.touches}</strong></span>
+                        </div>
+                        <div class="level-detail">
+                            <span>Buy Reactions:</span>
+                            <span class="up"><strong>${level.buy_reactions}</strong></span>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                supportListEl.innerHTML = '<p style="color: var(--text-secondary);">No support levels detected</p>';
+            }
+            const resistanceLevels = sr1d.resistance_levels || [];
+            const resistanceListEl = document.getElementById('resistanceLevelsList');
+            if (resistanceLevels.length > 0) {
+                resistanceListEl.innerHTML = resistanceLevels.map((level, idx) => `
+                    <div class="level-item">
+                        <h4>Resistance ${idx + 1} - ₹${level.price}</h4>
+                        <div class="level-detail">
+                            <span>Strength:</span>
+                            <span class="badge ${level.strength.toLowerCase().replace(' ', '-')}">${level.strength}</span>
+                        </div>
+                        <div class="level-detail">
+                            <span>Touches:</span>
+                            <span><strong>${level.touches}</strong></span>
+                        </div>
+                        <div class="level-detail">
+                            <span>Sell Reactions:</span>
+                            <span class="down"><strong>${level.sell_reactions}</strong></span>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                resistanceListEl.innerHTML = '<p style="color: var(--text-secondary);">No resistance levels detected</p>';
+            }
+            const mostActive = sr1d.most_active_level;
+            const mostActiveSection = document.getElementById('mostActiveLevelSection');
+            const mostActiveEl = document.getElementById('mostActiveLevel');
+            if (mostActive) {
+                mostActiveSection.style.display = 'block';
+                const totalActivity = mostActive.buy_reactions + mostActive.sell_reactions;
+                mostActiveEl.innerHTML = `
+                    <div class="level-item" style="border-left: 4px solid #ff9800;">
+                        <h4>${mostActive.type.toUpperCase()} Level - ₹${mostActive.price}</h4>
+                        <div class="level-detail">
+                            <span>Total Activity:</span>
+                            <span style="color: #ff9800;"><strong>${totalActivity} reactions</strong></span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                mostActiveSection.style.display = 'none';
+            }
+            const summary = sr1d.summary || {};
+            document.getElementById('totalSupports').textContent = summary.total_support_levels || 0;
+            document.getElementById('totalResistances').textContent = summary.total_resistance_levels || 0;
+            document.getElementById('strongestSupport').textContent = summary.strongest_support ? `₹${summary.strongest_support}` : 'N/A';
+            document.getElementById('strongestResistance').textContent = summary.strongest_resistance ? `₹${summary.strongest_resistance}` : 'N/A';
+        }
+
+        function updateNews(data) {
+            const newsList = document.getElementById('newsList');
+            newsList.innerHTML = '';
+            if (data.news && data.news.length > 0) {
+                data.news.forEach(article => {
+                    const articleEl = document.createElement('li');
+                    articleEl.className = 'level-item';
+                    articleEl.style.borderLeft = '4px solid var(--primary-accent)';
+                    const publishedDate = new Date(article.published_date);
+                    const timeAgo = getTimeAgo(publishedDate);
+                    articleEl.innerHTML = `
+                        <h4><a href="${article.url}" target="_blank" style="color: var(--primary-accent); text-decoration: none;">${article.title}</a></h4>
+                        <p style="margin: 8px 0; font-size: 0.9em; color: var(--text-secondary);">${article.summary}</p>
+                        <div style="font-size: 0.8em; color: var(--text-secondary);"><strong>${article.source}</strong> | ${timeAgo}</div>
+                    `;
+                    newsList.appendChild(articleEl);
+                });
+            } else {
+                newsList.innerHTML = '<li class="level-item"><p>No recent news available</p></li>';
+            }
+        }
+
+        function displayError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorMessage').style.display = 'block';
+            document.getElementById('resultSection').style.display = 'none';
+        }
+
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            if (seconds < 60) return 'Just now';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes}m ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}h ago`;
+            const days = Math.floor(hours / 24);
+            return `${days}d ago`;
+        }
+    </script>
+</body>
+</html>
