@@ -1,6 +1,5 @@
 # backend.py
 # Run: python backend.py
-
 import warnings
 import logging
 from dataclasses import dataclass
@@ -880,4 +879,5 @@ async def analyze_stock(stock_name: str):
 if __name__ == "__main__":
     logger.info("Starting API on port 8000...")
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
 
