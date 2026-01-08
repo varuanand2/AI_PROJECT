@@ -27,6 +27,9 @@ warnings.filterwarnings('ignore')
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+ @app.get("/")
+def read_root():
+    return {"message": "Hello World! My API is running."}
 
 # ================= UPSTOX CONFIG ==================
 
@@ -877,3 +880,4 @@ async def analyze_stock(stock_name: str):
 if __name__ == "__main__":
     logger.info("Starting API on port 8000...")
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
